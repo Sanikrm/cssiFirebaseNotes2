@@ -6,33 +6,63 @@ window.onload = (event) => {
     if (user) {
       console.log('Logged in as: ' + user.displayName);
       googleUser = user;
-      console.log(user);
-      getNotes(user.uid, user.displayName);
+      printLabels(user.uid, user.displayName);
     } else {
       window.location = 'index.html'; // If not logged in, navigate back to login page.
     }
   });
 };
-
-function getNotes(userId, name) {
-    const notesRef = firebase.database().ref(`users/${userId}`);
-    notesRef.on('value', (db) => {
+function printLabels(userId, name) {
+    const labelRef = firebase.database().ref(`users/${userId}/labels`);
+    labelRef.on('value', (db) => {
         const data = db.val();
-        renderData(data, name);
-
-    });
+        console.log(data);
+        for(const dataKey in data) {
+            const note = data[dataKey];
+            document.querySelector('#app').innerHTML += `
+                <div class = "column is-one-quarter">
+                    <div class ="card" >
+                        <header class="card-header">
+                            <span class="card-header-title">${note.title}</span>
+                    </header>
+                    <div class="card-content">
+                        <div class="content" >${note.text}</div>
+                    </div>
+                    <div class = "card-content">
+                        <div class="content" style = "font-size: 10px"><i>Written by ${name}</i></div>
+                    </div>
+                </div>
+        </div>`
+            getNotes(userId, name, data);
+        }
+        
+    })
+}
+function getNotes(userId, name, data) {
+    for(const dataKey in data) {
+        const noteId = data[dataKey];
+        const cardHtml = renderCard(noteId, name);
+        html += cardHtml  
+    }
 }
 
 function renderData(data, name) {
-    console.log(data); 
     let html = '';
-    for(const dataKey in data) {
-        const note = data[dataKey];
-        const cardHtml = renderCard(note, name);
-        html += cardHtml  
-    }
-
-    document.querySelector('#app').innerHTML = html;
+    const notesRef = firebase.database().ref(`users/${userId}/messages`);
+    notesRef.on('value', (db) => {
+        const dataNote = db.val();
+        for(const dataKey in dataNote) {
+            const note = dataNote[dataKey];
+            if(note.uuid === data) {
+                const cardHtml = renderCard(noteId, name);
+                html += cardHtml
+            }
+            
+             
+        }
+        
+    });
+    document.querySelector('#app').innerHTML += html;
 }
 function randColor() {
     var letters = '0123456789ABCDEF';
@@ -69,7 +99,7 @@ function padZero(str, len) {
 
 function renderCard(note, name) {
     // convert a note to html and return it
-   /* const div = document.createElement('div');
+    /*const div = document.createElement('div');
     div.classList.add('column', 'is-one-quarter');
 
     const card = coument.createElement('div');
